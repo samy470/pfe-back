@@ -16,6 +16,7 @@ mongoose.connect("mongodb://localhost:27017/userdb")
 
 app.post("/api/register", controller.register);
 app.post("/api/login", controller.login);
+app.get('/api/verify-email', controller.verifyEmail);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Running on ${PORT}`));

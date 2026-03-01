@@ -21,15 +21,6 @@ app.get("/health", (req: Request, res: Response) => {
   });
 });
 
-app.get(
-  "/api/auth/admin",
-  authenticate,
-  authorize(Role.ADMIN),
-  (req, res) => {
-    res.json({ message: "Welcome Admin" });
-  }
-);
-
 app.use("/api", async (req: Request, res: Response) => {
   try {
     const url = `http://localhost:5000${req.originalUrl}`;
