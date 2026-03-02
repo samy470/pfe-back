@@ -65,11 +65,5 @@ export const login = async (username: string, password: string) => {
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) throw new Error("Invalid password");
 
-  const token = jwt.sign(
-    { id: user._id, username: user.username, role: user.role },
-    process.env.JWT_SECRET!,
-    { expiresIn: "1h" }
-  );
-
-  return {token, username: user.username, role: user.role};
+  return {id: user._id, username: user.username, role: user.role};
 };
