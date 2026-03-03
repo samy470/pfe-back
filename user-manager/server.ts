@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import Consul from "consul"; 
 import * as controller from "./controllers/userController";
 import client from "prom-client";
+import Game from "./models/games";
 
 dotenv.config();
 
@@ -59,15 +60,23 @@ app.post("/api/register", controller.register);
 app.post("/api/login", controller.login);
 app.get('/api/verify-email', controller.verifyEmail);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, async () => {
+app.get("/api/games", async (req, res) => {
+  const games = await Game.findAll();
+  res.json(games);
+});
+
+const PORT = Number(process.env.PORT) || 5000;
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Running on ${PORT}`);
-  const consulClient = new Consul({ host: "localhost", port: 8500 });
-  
-    try {
-    await consulClient.agent.service.register("user-service");
-    console.log("Registered with Consul");
-  } catch (err) {
-    console.error("Consul registration failed:", err);
-  }
-  });
+  const consulClient = new Consul({ host: "172.20.166.66", port: 8500 });
+
+  consulClient.agent.service.register({
+    name: "user-service",
+    address: "172.20.160.1",
+    port: Number(PORT),
+    check: {
+      http: `http://172.20.160.1:${PORT}/health`,
+      interval: "10s"
+    }
+  } as any);
+});

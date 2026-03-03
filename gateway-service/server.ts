@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { getServiceUrl } from "./consul";
 import jwt from "jsonwebtoken";
-import axios from "axios"; 
+import axios from "axios";
 import client from "prom-client";
 
 const app = express();
@@ -13,18 +13,17 @@ app.use(express.json());
 
 app.post("/api/login", async (req, res) => {
   try {
-    const userServiceUrl = await getServiceUrl("user-service"); 
+    const userServiceUrl = await getServiceUrl("user-service");
     const response = await axios.post(`${userServiceUrl}/api/login`, req.body);
-    
+
     const token = jwt.sign(
-  { id: response.data.id, username: response.data.username, role: response.data.role },
-  "process.env.JWT_SECRET!",
-  { expiresIn: "1h" }
-);
-    
+      { id: response.data.id, username: response.data.username, role: response.data.role },
+      "process.env.JWT_SECRET!",
+      { expiresIn: "1h" }
+    );
     res.json({ token, user: response.data });
   } catch (error: any) {
-    
+
     res.status(error.response?.status || 500).json(error.response?.data);
   }
 });
@@ -33,9 +32,14 @@ app.post("/api/register", async (req, res) => {
   try {
     const userServiceUrl = await getServiceUrl("user-service");
     const response = await axios.post(`${userServiceUrl}/api/register`, req.body);
+
     res.json(response.data);
   } catch (error: any) {
-    res.status(error.response?.status || 500).json(error.response?.data);
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ message: error.message });
+    }
   }
 });
 

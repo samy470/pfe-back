@@ -23,7 +23,7 @@ export const register = async (
       throw new UserExistsError("Username already taken");
     }
   }
-
+console.log("PASSWORD VALUE:", password, typeof password);
   const hashed = await bcrypt.hash(password, 10);
   const verificationToken = crypto.randomBytes(32).toString('hex');
   const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);

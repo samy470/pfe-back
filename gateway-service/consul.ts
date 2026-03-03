@@ -1,24 +1,16 @@
-import consul from "consul";
+import axios from 'axios';
 
-const consulClient: any = new consul({ host: "localhost", port: 8500 });
-
-interface ServiceInfo {
-  Service: string;
-  Address: string;
-  Port: number;
-}
+const CONSUL_URL = 'http://172.20.166.66:8500';
 
 export async function getServiceUrl(serviceName: string): Promise<string> {
-  const services: Record<string, ServiceInfo> = await new Promise((resolve, reject) => {
-    consulClient.agent.service.list((err: any, result: any) => {
-      if (err) return reject(err);
-      resolve(result);
-    });
-  });
-
-  const service = Object.values(services).find((s) => s.Service === serviceName) as ServiceInfo | undefined;
-
-  if (!service) throw new Error(`Service ${serviceName} not found`);
-
-  return `http://${service.Address}:${service.Port}`;
+  const response = await axios.get(`${CONSUL_URL}/v1/agent/services`);
+  const services = response.data;
+  
+  const serviceEntry = Object.values(services).find(
+    (s: any) => s.Service === serviceName
+  );
+  
+  if (!serviceEntry) throw new Error(`Service ${serviceName} not found`);
+  
+  return `http://${(serviceEntry as any).Address}:${(serviceEntry as any).Port}`;
 }
