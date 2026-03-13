@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:15
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: mysecretpassword
+      POSTGRES_DB: gamesdb
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  consul:
+    image: hashicorp/consul:latest
+    ports:
+      - "8500:8500"
+    command: agent -dev -client=0.0.0.0
+    networks:
+      - app-network
+
+  user-manager:
+    build: ./user-manager
+    ports:
+      - "5000:5000"
+    environment:
+      - JWT_SECRET=your_secret_here
+      - MONGO_HOST=mongodb
+      - CONSUL_HOST=consul
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=gamesdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+    depends_on:
+      mongodb:
+        condition: service_started
+      consul:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  gateway:
+    build: ./gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - JWT_SECRET=your_secret_here
+      - CONSUL_HOST=consul
+    depends_on:
+      - user-manager
+      - consul
+    networks:
+      - app-network
+
+  frontend:
+    build: ./pfe
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://gateway:8080
+    depends_on:
+      - gateway
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+  postgres-data:

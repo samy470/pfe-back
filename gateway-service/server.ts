@@ -1,0 +1,86 @@
+import express from "express";
+import cors from "cors";
+import { getServiceUrl } from "./consul";
+import jwt from "jsonwebtoken";
+import axios from "axios";
+import client from "prom-client";
+
+const app = express();
+const PORT = 8080;
+
+app.use(cors());
+app.use(express.json());
+
+app.post("/api/login", async (req, res) => {
+  try {
+    const userServiceUrl = await getServiceUrl("user-service");
+    const response = await axios.post(`${userServiceUrl}/api/login`, req.body);
+
+    const token = jwt.sign(
+      { id: response.data.id, username: response.data.username, role: response.data.role },
+      "process.env.JWT_SECRET!",
+      { expiresIn: "1h" }
+    );
+    res.json({ token, user: response.data });
+  } catch (error: any) {
+    res.status(error.response?.status || 500).json(error.response?.data);
+  }
+});
+
+app.post("/api/register", async (req, res) => {
+  try {
+    const userServiceUrl = await getServiceUrl("user-service");
+    const response = await axios.post(`${userServiceUrl}/api/register`, req.body);
+
+    res.json(response.data);
+  } catch (error: any) {
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else {
+      res.status(500).json({ message: error.message });
+    }
+  }
+});
+
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', client.register.contentType);
+    res.end(await client.register.metrics());
+  } catch (err) {
+    res.status(500).end(err);
+  }
+});
+
+app.get("/api/games", async (req, res) => {
+  try {
+    const userServiceUrl = await getServiceUrl("user-service");
+    const response = await axios.get(`${userServiceUrl}/api/games`);
+    res.json(response.data);
+  } catch (error: any) {
+    res.status(500).json({ error: "Failed to fetch games" });
+  }
+});
+
+app.get("/api/games/search", async (req, res) => {
+  try {
+    const userServiceUrl = await getServiceUrl("user-service");
+    const response = await axios.get(`${userServiceUrl}/api/games/search`, { params: req.query });
+    res.json(response.data);
+  } catch (error: any) {
+    res.status(500).json({ error: "Failed to search games" });
+  }
+});
+
+app.get("/api/games/:id", async (req, res) => {
+  try {
+    const userServiceUrl = await getServiceUrl("user-service");
+    const response = await axios.get(`${userServiceUrl}/api/games/${req.params.id}`);
+    res.json(response.data);
+  } catch (error: any) {
+    res.status(500).json({ error: "Failed to fetch game" });
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Gateway running on port ${PORT}`);
+});
