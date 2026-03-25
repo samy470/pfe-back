@@ -8,7 +8,10 @@ import client from "prom-client";
 const app = express();
 const PORT = 8080;
 
-app.use(cors());
+app.use(cors({
+  origin: ['https://gamesteem.netlify.app', 'http://localhost:3000'],
+  credentials: true
+}));
 app.use(express.json());
 
 app.post("/api/login", async (req, res) => {
