@@ -97,7 +97,7 @@ app.get("/api/games/:id", async (req, res) => {
   res.json(game);
 });
 
-const PORT = Number(process.env.PORT || 5000);
+const PORT = 5000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Running on ${PORT}`);
   
