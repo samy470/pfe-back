@@ -55,6 +55,7 @@ app.get("/health", (req, res) => {
 
 //mongo
 const mongoHost = process.env.MONGO_HOST;
+if (!mongoHost) throw new Error("MONGO_HOST is missing");
 mongoose.connect(mongoHost)
   .then(() => console.log("Mongo connected"))
   .catch(err => console.error(err));
