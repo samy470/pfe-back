@@ -54,7 +54,7 @@ app.get("/health", (req, res) => {
 });
 
 //mongo
-const mongoHost = process.env.MONGO_HOST || (process.env.NODE_ENV === 'docker' ? 'host.docker.internal' : 'localhost');
+const mongoHost = process.env.MONGO_HOST;
 mongoose.connect(`mongodb://${mongoHost}:27017/userdb`)
   .then(() => console.log("Mongo connected"))
   .catch(err => console.error(err));
