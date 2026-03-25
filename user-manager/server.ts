@@ -55,7 +55,7 @@ app.get("/health", (req, res) => {
 
 //mongo
 const mongoHost = process.env.MONGO_HOST;
-mongoose.connect(`mongodb://${mongoHost}:27017/userdb`)
+mongoose.connect(mongoHost)
   .then(() => console.log("Mongo connected"))
   .catch(err => console.error(err));
 
