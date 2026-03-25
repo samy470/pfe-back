@@ -95,15 +95,17 @@ app.get("/api/games/:id", async (req, res) => {
 const PORT = Number(process.env.PORT || 5000);
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Running on ${PORT}`);
-  const consulClient = new Consul({ host: "172.20.166.66", port: 8500 });
-
-  consulClient.agent.service.register({
-    name: "user-service",
-    address: "172.20.160.1",
-    port: Number(PORT),
-    check: {
-      http: `http://172.20.160.1:${PORT}/health`,
-      interval: "10s"
-    }
-  } as any);
+  
+  if (process.env.NODE_ENV !== 'production') {
+    const consulClient = new Consul({ host: "172.20.166.66", port: 8500 });
+    consulClient.agent.service.register({
+      name: "user-service",
+      address: "172.20.160.1",
+      port: Number(PORT),
+      check: {
+        http: `http://172.20.160.1:${PORT}/health`,
+        interval: "10s"
+      }
+    } as any);
+  }
 });
