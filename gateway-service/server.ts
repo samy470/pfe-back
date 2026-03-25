@@ -16,7 +16,7 @@ app.use(express.json());
 
 app.post("/api/login", async (req, res) => {
   try {
-    const userServiceUrl = await getServiceUrl("user-service");
+    const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:5000';
     const response = await axios.post(`${userServiceUrl}/api/login`, req.body);
 
     const token = jwt.sign(
@@ -32,7 +32,7 @@ app.post("/api/login", async (req, res) => {
 
 app.post("/api/register", async (req, res) => {
   try {
-    const userServiceUrl = await getServiceUrl("user-service");
+    const userServiceUrl = process.env.USER_SERVICE_URL || 'http://localhost:5000';
     const response = await axios.post(`${userServiceUrl}/api/register`, req.body);
 
     res.json(response.data);
