@@ -6,7 +6,7 @@ import crypto from 'crypto';
 import { UserExistsError } from "../exceptions/customErrors";
 
 dotenv.config();
-sgMail.setApiKey("xx");
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 //register
 export const register = async (
